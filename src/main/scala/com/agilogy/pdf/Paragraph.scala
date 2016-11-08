@@ -22,6 +22,7 @@ case class SimpleParagraph(text: String, style: ParagraphStyle) extends Paragrap
 case class CompoundParagraph(elements: Seq[ITextableElement], style: ParagraphStyle) extends Paragraph {
   override private[pdf] def toItext(currentPage: Int, totalPages: Int): IElement = {
     val base = new IParagraph()
+    base.setAlignment(style.alignment.toItext)
     base.setMultipliedLeading(style.multipliedLeading)
     base.setIndentationLeft(style.firstLineIndentation)
     elements.foreach(e => base.add(e.toItext(currentPage, totalPages)))
@@ -36,6 +37,8 @@ object Paragraph {
   def apply(content: String, style: ParagraphStyle = ParagraphStyle()): SimpleParagraph = SimpleParagraph(content, style)
 
   def apply(content: ITextableElement*): CompoundParagraph = CompoundParagraph(content, ParagraphStyle.Default)
+
+  def apply(style: ParagraphStyle, content: ITextableElement*): CompoundParagraph = CompoundParagraph(content, style)
 
   implicit def string2Phrase(text: String): ITextableElement = Phrase(text)
 }

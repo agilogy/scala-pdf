@@ -17,7 +17,7 @@ object Border {
   val Last = Border(top = false, bottom = true, left = true, right = true)
 }
 
-case class CellStyle(border: Border = Border.None, padding: Padding = Padding.Default)
+case class CellStyle(border: Border = Border.None, padding: Padding = Padding.Default, borderWidth: Float = 0.5f)
 
 object CellStyle {
   val Default = CellStyle()

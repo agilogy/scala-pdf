@@ -10,6 +10,7 @@ case class Cell(content: ITextableElement, colSpan: Int = 1, rowSpan: Int = 1, s
     cell.setVerticalAlignment(IElement.ALIGN_MIDDLE)
     cell.setColspan(colSpan)
     cell.setRowspan(rowSpan)
+    cell.setBorderWidth(style.borderWidth)
     cell.setBorder(style.border.toIText)
     cell.addElement(content.toItext(currentPage, totalPages))
     val padding = style.padding
