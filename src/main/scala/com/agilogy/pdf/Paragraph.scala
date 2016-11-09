@@ -5,7 +5,7 @@ import com.lowagie.text.{Element => IElement, Paragraph => IParagraph, Phrase =>
 trait Paragraph extends ITextableElement
 
 case class SimpleParagraph(text: String, style: ParagraphStyle) extends Paragraph {
-  override private[pdf] def toItext(currentPage: Int, totalPages: Int): IElement = {
+  override private[pdf] def toItext(currentPageFn: () => Int, totalPages: Int): IElement = {
     val p = new IParagraph()
     p.setFont(style.fontStyle.toFont)
     p.setAlignment(style.alignment.toItext)
@@ -20,12 +20,12 @@ case class SimpleParagraph(text: String, style: ParagraphStyle) extends Paragrap
 }
 
 case class CompoundParagraph(elements: Seq[ITextableElement], style: ParagraphStyle) extends Paragraph {
-  override private[pdf] def toItext(currentPage: Int, totalPages: Int): IElement = {
+  override private[pdf] def toItext(currentPageFn: () => Int, totalPages: Int): IElement = {
     val base = new IParagraph()
     base.setAlignment(style.alignment.toItext)
     base.setMultipliedLeading(style.multipliedLeading)
     base.setIndentationLeft(style.firstLineIndentation)
-    elements.foreach(e => base.add(e.toItext(currentPage, totalPages)))
+    elements.foreach(e => base.add(e.toItext(currentPageFn, totalPages)))
     base
   }
   def withStyle(style: ParagraphStyle) = this.copy(style = style)

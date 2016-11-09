@@ -17,44 +17,45 @@ case class Document(margins: Margins, pageHeader: Seq[ITextableElement], element
   private def generatePdf(os: OutputStream, totalPages: Int): Int = {
     val document = new IDocument(PageSize.A4)
     val writer = PdfWriter.getInstance(document, os)
+    val currentPageFn = writer.getCurrentPageNumber _
     val header = oneCellTable(PageSize.A4.getWidth, pageHeader) _
     val footer = pageFooter.map(f => oneCellTable(PageSize.A4.getWidth, f) _)
-    document.setMargins(margins.leftMargin, margins.rightMargin, header(0, 0).getTotalHeight + margins.topMargin,
-      footer.fold(margins.bottomMargin)(_(0,0).getTotalHeight + margins.bottomMargin))
+    document.setMargins(margins.leftMargin, margins.rightMargin, header(currentPageFn, totalPages).getTotalHeight + margins.topMargin,
+      footer.fold(margins.bottomMargin)(_(currentPageFn,totalPages).getTotalHeight + margins.bottomMargin))
     document.setMarginMirroring(margins.leftRightMirroring)
     document.setMarginMirroringTopBottom(margins.topBottomMirroring)
 
     var returnTotalPages = 0
     writer.setPageEvent(new PdfPageEventHelper {
       override def onEndPage(writer: PdfWriter, document: IDocument): Unit = {
-        val page = writer.getCurrentPageNumber
         returnTotalPages += 1
-        header(page, totalPages).writeSelectedRows(0, 1, margins.leftMargin, writer.getPageSize.getTop - 25f, writer.getDirectContent)
-        footer.foreach(f => f(page,totalPages).writeSelectedRows(0, 1, margins.leftMargin, writer.getPageSize.getBottom + f(page,totalPages).getTotalHeight + 25f, writer.getDirectContent))
+        header(currentPageFn, totalPages).writeSelectedRows(0, 1, margins.leftMargin, writer.getPageSize.getTop - 25f, writer.getDirectContent)
+        footer.foreach(f => f(currentPageFn,totalPages).writeSelectedRows(0, 1, margins.leftMargin, writer.getPageSize.getBottom + f(currentPageFn,totalPages).getTotalHeight + 25f, writer.getDirectContent))
         var newSidePhrasePosition = 15f
         leftSideVerticalContent.foreach (_.foreach { p =>
             val phraseWithMarginsSize = new IChunk(p.text,p.fontStyle.toFont).getWidthPoint
-            IColumnText.showTextAligned(writer.getDirectContent, Alignment.Center.id, p.toItext(0, 0).asInstanceOf[IPhrase], newSidePhrasePosition, (PageSize.A4.getHeight - phraseWithMarginsSize)/2, 90f)
+            IColumnText.showTextAligned(writer.getDirectContent, Alignment.Center.id, p.toItext(currentPageFn, totalPages).asInstanceOf[IPhrase], newSidePhrasePosition, (PageSize.A4.getHeight - phraseWithMarginsSize)/2, 90f)
             newSidePhrasePosition += 7f
           }
         )
       }
     })
+
     document.open()
     elements.foreach {
       case PageBreak => document.newPage()
-      case e: ITextableElement => document.add(e.toItext(writer.getCurrentPageNumber, totalPages))
+      case e: ITextableElement => document.add(e.toItext(currentPageFn, totalPages))
     }
     document.close()
     returnTotalPages
   }
 
-  def oneCellTable(width: Float, elements: Seq[ITextableElement])(currentPage: Int, totalPages: Int) = {
+  def oneCellTable(width: Float, elements: Seq[ITextableElement])(currentPageFn: () => Int, totalPages: Int) = {
     val table = new PdfPTable(1)
     table.setTotalWidth(width)
     val cell = new PdfPCell()
     cell.setBorder(0)
-    elements.foreach(h => cell.addElement(h.toItext(currentPage, totalPages)))
+    elements.foreach(h => cell.addElement(h.toItext(currentPageFn, totalPages)))
     table.addCell(cell)
     table
   }

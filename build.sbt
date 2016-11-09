@@ -2,7 +2,7 @@ organization := "com.agilogy"
 
 name := "scala-pdf"
 
-version := "1.2"
+version := "1.3"
 
 scalaVersion := "2.11.8"
 
