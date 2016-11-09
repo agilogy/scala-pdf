@@ -43,7 +43,7 @@ case class Document(margins: Margins, pageHeader: Seq[ITextableElement], element
     document.open()
     elements.foreach {
       case PageBreak => document.newPage()
-      case e: ITextableElement => document.add(e.toItext(0, 0))
+      case e: ITextableElement => document.add(e.toItext(writer.getCurrentPageNumber, totalPages))
     }
     document.close()
     returnTotalPages
