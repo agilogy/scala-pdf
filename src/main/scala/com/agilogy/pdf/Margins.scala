@@ -6,9 +6,10 @@ case class Margins(leftMargin: Float, rightMargin: Float, topMargin: Float, bott
 }
 
 object Margins {
+  //lateral margins must be symmetric in order to align header, content and footer
   val Default = Margins(
-    leftMargin = 5f,
-    rightMargin = 5f,
+    leftMargin = -25f,
+    rightMargin = -25f,
     topMargin = 20f,
     bottomMargin = 20f
   )

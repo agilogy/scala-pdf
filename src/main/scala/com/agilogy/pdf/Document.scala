@@ -4,7 +4,7 @@ import java.io.OutputStream
 
 import com.agilogy.pdf.util.NullOutputStream
 import com.lowagie.text.pdf.{ColumnText => IColumnText, _}
-import com.lowagie.text.{PageSize, Document => IDocument, Phrase => IPhrase, Chunk => IChunk}
+import com.lowagie.text.{PageSize, Chunk => IChunk, Document => IDocument, Phrase => IPhrase}
 
 case class Document(margins: Margins, pageHeader: Seq[ITextableElement], elements: Seq[Element],
                     pageFooter:Option[Seq[ITextableElement]] = None, leftSideVerticalContent:Option[Seq[Phrase]] = None) {
@@ -18,8 +18,9 @@ case class Document(margins: Margins, pageHeader: Seq[ITextableElement], element
     val document = new IDocument(PageSize.A4)
     val writer = PdfWriter.getInstance(document, os)
     val currentPageFn = writer.getCurrentPageNumber _
-    val header = oneCellTable(PageSize.A4.getWidth, pageHeader) _
-    val footer = pageFooter.map(f => oneCellTable(PageSize.A4.getWidth, f) _)
+    val pageWidth = PageSize.A4.getWidth - margins.rightMargin -margins.rightMargin
+    val header = oneCellTable(pageWidth, pageHeader) _
+    val footer = pageFooter.map(f => oneCellTable(pageWidth, f) _)
     document.setMargins(margins.leftMargin, margins.rightMargin, header(currentPageFn, totalPages).getTotalHeight + margins.topMargin,
       footer.fold(margins.bottomMargin)(_(currentPageFn,totalPages).getTotalHeight + margins.bottomMargin))
     document.setMarginMirroring(margins.leftRightMirroring)
